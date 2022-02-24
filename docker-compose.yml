@@ -1,0 +1,8 @@
+version: '3'
+services:
+  api-spring:
+    build: .
+    image: 'nilord/cyverse-calculator:latest'
+    restart: unless-stopped
+    ports:
+      - '9095:9095'
