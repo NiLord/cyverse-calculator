@@ -80,9 +80,9 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
 
     // Check for special variation
     if (serverId >= SERVER_RATE_CHANGE) {
-      calculationServer = new BigDecimal(serverId - SERVER_RATE_CHANGE);
+      calculationServer = new BigDecimal(serverId + 1 - SERVER_RATE_CHANGE);
       serverVariation = RATE_DROP_TWO.multiply(calculationServer);
-      response.add(serverVariation);
+      response = response.add(serverVariation);
     }
 
     log.info("End win rate calculation. Win rate is {}", response);

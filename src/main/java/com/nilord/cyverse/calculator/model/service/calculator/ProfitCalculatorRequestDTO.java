@@ -17,9 +17,6 @@ public class ProfitCalculatorRequestDTO implements Serializable {
   @Schema(description = "Drivers amount", example = "16", required = true)
   private Integer drivers;
   
-  @Schema(description = "Pods amount", example = "10", required = true)
-  private Integer pods;
-  
   @Schema(description = "Pods amount", example = "1400", required = true)
   private Integer hackingPower;
   
