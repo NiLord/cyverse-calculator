@@ -1,9 +1,10 @@
 package com.nilord.cyverse.calculator.util.profit.impl;
 
 import java.math.BigDecimal;
-import java.util.Map;
 import org.springframework.stereotype.Component;
+import com.nilord.cyverse.calculator.constant.ServerEnum;
 import com.nilord.cyverse.calculator.error.CyverseCalculationException;
+import com.nilord.cyverse.calculator.model.service.calculator.InvestmentIWrapperDTO;
 import com.nilord.cyverse.calculator.model.service.calculator.ProfitCalculatorRequestDTO;
 import com.nilord.cyverse.calculator.model.service.calculator.ProfitCalculatorResponseDTO;
 import com.nilord.cyverse.calculator.util.profit.ProfitCalculationUtils;
@@ -24,23 +25,8 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
 
   private static final Integer MONTH_DAYS = 30;
 
-  private static final Map<Integer, BigDecimal> SERVER_WIN =
-      Map.ofEntries(Map.entry(1, new BigDecimal("8.00")), Map.entry(2, new BigDecimal("10.00")),
-          Map.entry(3, new BigDecimal("15.00")), Map.entry(4, new BigDecimal("20.00")),
-          Map.entry(5, new BigDecimal("25.00")), Map.entry(6, new BigDecimal("31.00")),
-          Map.entry(7, new BigDecimal("37.00")), Map.entry(8, new BigDecimal("44.00")),
-          Map.entry(9, new BigDecimal("51.00")), Map.entry(10, new BigDecimal("58.00")),
-          Map.entry(11, new BigDecimal("67.00")), Map.entry(12, new BigDecimal("76.00")),
-          Map.entry(13, new BigDecimal("85.00")), Map.entry(14, new BigDecimal("95.00")),
-          Map.entry(15, new BigDecimal("105.00")), Map.entry(16, new BigDecimal("120.00")),
-          Map.entry(17, new BigDecimal("135.00")), Map.entry(18, new BigDecimal("150.00")),
-          Map.entry(19, new BigDecimal("167.00")), Map.entry(20, new BigDecimal("185.00")),
-          Map.entry(21, new BigDecimal("205.00")), Map.entry(22, new BigDecimal("225.00")),
-          Map.entry(23, new BigDecimal("245.00")), Map.entry(24, new BigDecimal("265.00")),
-          Map.entry(25, new BigDecimal("285.00")), Map.entry(26, new BigDecimal("310.00")),
-          Map.entry(27, new BigDecimal("330.00")), Map.entry(28, new BigDecimal("350.00")),
-          Map.entry(29, new BigDecimal("375.00")), Map.entry(30, new BigDecimal("400.00")));
-  
+  private static final BigDecimal BACKDOOR_FEE = new BigDecimal("1");
+
   /** End> Parameters should live in a data base **/
 
   @Override
@@ -53,6 +39,9 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
     response.setSucessDaysPerMonth(this.getSucessDays(response.getWinRate()));
     response.setSucessMoneyRewardPerMonth(
         this.getMoneyRewardPerMoth(response.getSucessDaysPerMonth(), response.getServerId()));
+    response.setInvestment(this.getTotalInvestment(request.getDrivers(), response.getServerId()));
+    response.setMonthlyProfits(this.getMonthlyProfits(response.getInvestment().getMontlyExpense(),
+        response.getSucessMoneyRewardPerMonth()));
     response.setSucess(true);
 
     return response;
@@ -110,7 +99,7 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
       throw new CyverseCalculationException("Invalid winrate has been sent");
     }
 
-    BigDecimal response = winRate.multiply(new BigDecimal(MONTH_DAYS.toString()));
+    final BigDecimal response = winRate.multiply(new BigDecimal(MONTH_DAYS.toString()));
 
     log.info("End sucessday calculation. Sucess days value {}", response);
 
@@ -123,18 +112,63 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
 
     log.info("Init money reward per month for server id {} / sucess days {}", serverId, sucessDays);
 
-    if (!SERVER_WIN.containsKey(serverId) || sucessDays > MONTH_DAYS) {
+    final ServerEnum serverEnum = ServerEnum.getEnumFromId(serverId);
+
+    if (ServerEnum.INVALID.equals(serverEnum) || sucessDays > MONTH_DAYS) {
       throw new CyverseCalculationException("Invalid server id or sucessDays has been sent");
     }
 
-    BigDecimal rewardPerDay = SERVER_WIN.get(serverId);
+    final BigDecimal rewardPerDay = serverEnum.getValue();
     log.info("Server rewards for server {} is {}", serverId, rewardPerDay);
 
-    BigDecimal response = rewardPerDay.multiply(new BigDecimal(sucessDays));
+    final BigDecimal response = rewardPerDay.multiply(new BigDecimal(sucessDays));
 
     log.info("End money reward per month. Response is", response);
 
     return response;
+  }
+
+  @Override
+  public BigDecimal getBackDoorFee(Integer drivers) throws CyverseCalculationException {
+    return BACKDOOR_FEE.multiply(new BigDecimal(drivers)).multiply(new BigDecimal(MONTH_DAYS));
+  }
+
+  @Override
+  public BigDecimal getServerFee(Integer serverId) throws CyverseCalculationException {
+    log.info("Init get server fee for server {}", serverId);
+
+    final ServerEnum serverEnum = ServerEnum.getEnumFromId(serverId);
+
+    if (ServerEnum.INVALID.equals(serverEnum)) {
+      throw new CyverseCalculationException("Invalid server id has been sent");
+    }
+
+    final BigDecimal response = serverEnum.getValue().multiply(serverEnum.getServerFee())
+        .multiply(new BigDecimal(MONTH_DAYS));
+
+    log.info("End get server fee. Response is {}", response);
+
+    return response;
+  }
+
+  @Override
+  public InvestmentIWrapperDTO getTotalInvestment(Integer drivers, Integer serverId)
+      throws CyverseCalculationException {
+    log.info("Init get total investment for server {} and drivers {}", serverId, drivers);
+
+    final InvestmentIWrapperDTO response = new InvestmentIWrapperDTO();
+
+    response.setBackdoorFeeMonthly(this.getBackDoorFee(drivers));
+    response.setServerFeeMonthly(this.getServerFee(serverId));
+    response.setMontlyExpense(response.getBackdoorFeeMonthly().add(response.getServerFeeMonthly()));
+
+    return response;
+  }
+
+  @Override
+  public BigDecimal getMonthlyProfits(BigDecimal totalInvestment, BigDecimal totalEarn)
+      throws CyverseCalculationException {
+    return totalEarn.subtract(totalInvestment);
   }
 
 }

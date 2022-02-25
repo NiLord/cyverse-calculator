@@ -2,6 +2,7 @@ package com.nilord.cyverse.calculator.util.profit;
 
 import java.math.BigDecimal;
 import com.nilord.cyverse.calculator.error.CyverseCalculationException;
+import com.nilord.cyverse.calculator.model.service.calculator.InvestmentIWrapperDTO;
 import com.nilord.cyverse.calculator.model.service.calculator.ProfitCalculatorRequestDTO;
 import com.nilord.cyverse.calculator.model.service.calculator.ProfitCalculatorResponseDTO;
 
@@ -11,7 +12,7 @@ public interface ProfitCalculationUtils {
    * Get all calculations at once
    * 
    * @param request All necesary data for calculation
-   * @return all calculations 
+   * @return all calculations
    * @throws CyverseCalculationException Invalid data is sent
    */
   public ProfitCalculatorResponseDTO getProfitCalculatorWrapper(ProfitCalculatorRequestDTO request)
@@ -25,8 +26,8 @@ public interface ProfitCalculationUtils {
    * @throws CyverseCalculationException Invalid data is sent
    */
   public Integer getServerId(Integer hackingPower) throws CyverseCalculationException;
-  
-  
+
+
   /**
    * Calculate the win rate for the actual server
    * 
@@ -35,7 +36,7 @@ public interface ProfitCalculationUtils {
    * @throws CyverseCalculationException Invalid data is sent
    */
   public BigDecimal getWinRate(Integer serverId) throws CyverseCalculationException;
-  
+
   /**
    * Calculate the sucess days in a month
    * 
@@ -44,14 +45,55 @@ public interface ProfitCalculationUtils {
    * @throws CyverseCalculationException Invalid data is sent
    */
   public Integer getSucessDays(BigDecimal winRate) throws CyverseCalculationException;
-  
+
   /**
    * Money rewards per month
+   * 
    * @param sucessDays number of sucess days
    * @param serverId server id
    * @return sucess money reward per month
-   * @throws CyverseCalculationException
+   * @throws CyverseCalculationException Invalid data is sent
    */
-  public BigDecimal getMoneyRewardPerMoth(Integer sucessDays, Integer serverId) throws CyverseCalculationException;
+  public BigDecimal getMoneyRewardPerMoth(Integer sucessDays, Integer serverId)
+      throws CyverseCalculationException;
+
+  /**
+   * Calculate backdoor fee in a month
+   * 
+   * @param drivers number of drivers
+   * @return total drivers month investment
+   * @throws CyverseCalculationException Invalid data is sent
+   */
+  public BigDecimal getBackDoorFee(Integer drivers) throws CyverseCalculationException;
+
+  /**
+   * Calculate server feed in a month
+   * 
+   * @param pods number of pods
+   * @return total pods investment
+   * @throws CyverseCalculationException Invalid data is sent
+   */
+  public BigDecimal getServerFee(Integer serverId) throws CyverseCalculationException;
+
+  /**
+   * Returns total investment in a single month
+   * 
+   * @param drivers number of drivers
+   * @param serverId server id
+   * @return total pods investment wrapper
+   * @throws CyverseCalculationException Invalid data is sent
+   */
+  public InvestmentIWrapperDTO getTotalInvestment(Integer drivers, Integer serverId)
+      throws CyverseCalculationException;
+  
+  /**
+   * Calculate the monthy profit 
+   * @param totalInvestment total investment in a month
+   * @param totalEarn total earn in a moth
+   * @return monthly profits
+   * @throws CyverseCalculationException Invalid data is sent
+   */
+  public BigDecimal getMonthlyProfits(BigDecimal totalInvestment, BigDecimal totalEarn)
+      throws CyverseCalculationException;
 
 }
