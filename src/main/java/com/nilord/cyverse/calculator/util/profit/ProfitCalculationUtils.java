@@ -2,9 +2,10 @@ package com.nilord.cyverse.calculator.util.profit;
 
 import java.math.BigDecimal;
 import com.nilord.cyverse.calculator.error.CyverseCalculationException;
-import com.nilord.cyverse.calculator.model.service.calculator.InvestmentIWrapperDTO;
 import com.nilord.cyverse.calculator.model.service.calculator.ProfitCalculatorRequestDTO;
 import com.nilord.cyverse.calculator.model.service.calculator.ProfitCalculatorResponseDTO;
+import com.nilord.cyverse.calculator.model.service.domain.TimeAmountWrapperDTO;
+import com.nilord.cyverse.calculator.model.service.domain.InvestmentIWrapperDTO;
 
 public interface ProfitCalculationUtils {
 
@@ -64,7 +65,7 @@ public interface ProfitCalculationUtils {
    * @return total drivers month investment
    * @throws CyverseCalculationException Invalid data is sent
    */
-  public BigDecimal getBackDoorFee(Integer drivers) throws CyverseCalculationException;
+  public TimeAmountWrapperDTO getBackDoorFee(Integer drivers) throws CyverseCalculationException;
 
   /**
    * Calculate server feed in a month
@@ -73,7 +74,7 @@ public interface ProfitCalculationUtils {
    * @return total pods investment
    * @throws CyverseCalculationException Invalid data is sent
    */
-  public BigDecimal getServerFee(Integer serverId) throws CyverseCalculationException;
+  public TimeAmountWrapperDTO getServerFee(Integer serverId) throws CyverseCalculationException;
 
   /**
    * Returns total investment in a single month
@@ -85,15 +86,25 @@ public interface ProfitCalculationUtils {
    */
   public InvestmentIWrapperDTO getTotalInvestment(Integer drivers, Integer serverId)
       throws CyverseCalculationException;
-  
+
   /**
-   * Calculate the monthy profit 
-   * @param totalInvestment total investment in a month
-   * @param totalEarn total earn in a moth
-   * @return monthly profits
+   * Calculate the estimated profits for the current data
+   * 
+   * @param totalInvestment total investment in a single month
+   * @param totalEarn total earn in a month
+   * @return profits data (monthly, weekly, daily)
    * @throws CyverseCalculationException Invalid data is sent
    */
-  public BigDecimal getMonthlyProfits(BigDecimal totalInvestment, BigDecimal totalEarn)
+  public TimeAmountWrapperDTO getProfits(BigDecimal totalInvestment, BigDecimal totalEarn)
       throws CyverseCalculationException;
+
+  /**
+   * Return the amount of money you can win in the actual server
+   * 
+   * @param server to check
+   * @return the amount
+   * @throws CyverseCalculationException Invalid data is sent
+   */
+  public BigDecimal getServerAmount(Integer serverId) throws CyverseCalculationException;
 
 }

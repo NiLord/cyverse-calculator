@@ -1,12 +1,14 @@
 package com.nilord.cyverse.calculator.util.profit.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import org.springframework.stereotype.Component;
 import com.nilord.cyverse.calculator.constant.ServerEnum;
 import com.nilord.cyverse.calculator.error.CyverseCalculationException;
-import com.nilord.cyverse.calculator.model.service.calculator.InvestmentIWrapperDTO;
 import com.nilord.cyverse.calculator.model.service.calculator.ProfitCalculatorRequestDTO;
 import com.nilord.cyverse.calculator.model.service.calculator.ProfitCalculatorResponseDTO;
+import com.nilord.cyverse.calculator.model.service.domain.TimeAmountWrapperDTO;
+import com.nilord.cyverse.calculator.model.service.domain.InvestmentIWrapperDTO;
 import com.nilord.cyverse.calculator.util.profit.ProfitCalculationUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,8 +42,9 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
     response.setSucessMoneyRewardPerMonth(
         this.getMoneyRewardPerMoth(response.getSucessDaysPerMonth(), response.getServerId()));
     response.setInvestment(this.getTotalInvestment(request.getDrivers(), response.getServerId()));
-    response.setMonthlyProfits(this.getMonthlyProfits(response.getInvestment().getMontlyExpense(),
+    response.setEstimatedProfits(this.getProfits(response.getInvestment().getExpense().getMonthly(),
         response.getSucessMoneyRewardPerMonth()));
+    response.setServerAmount(this.getServerAmount(response.getServerId()));
     response.setSucess(true);
 
     return response;
@@ -129,12 +132,20 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
   }
 
   @Override
-  public BigDecimal getBackDoorFee(Integer drivers) throws CyverseCalculationException {
-    return BACKDOOR_FEE.multiply(new BigDecimal(drivers)).multiply(new BigDecimal(MONTH_DAYS));
+  public TimeAmountWrapperDTO getBackDoorFee(Integer drivers)
+      throws CyverseCalculationException {
+    final TimeAmountWrapperDTO response = new TimeAmountWrapperDTO();
+
+    response.setMonthly(
+        BACKDOOR_FEE.multiply(new BigDecimal(drivers)).multiply(new BigDecimal(MONTH_DAYS)));
+    this.completeTimeDetails(response);
+
+    return response;
   }
 
   @Override
-  public BigDecimal getServerFee(Integer serverId) throws CyverseCalculationException {
+  public TimeAmountWrapperDTO getServerFee(Integer serverId)
+      throws CyverseCalculationException {
     log.info("Init get server fee for server {}", serverId);
 
     final ServerEnum serverEnum = ServerEnum.getEnumFromId(serverId);
@@ -143,8 +154,11 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
       throw new CyverseCalculationException("Invalid server id has been sent");
     }
 
-    final BigDecimal response = serverEnum.getValue().multiply(serverEnum.getServerFee())
-        .multiply(new BigDecimal(MONTH_DAYS));
+    final TimeAmountWrapperDTO response = new TimeAmountWrapperDTO();
+
+    response.setMonthly(serverEnum.getValue().multiply(serverEnum.getServerFee())
+        .multiply(new BigDecimal(MONTH_DAYS)));
+    this.completeTimeDetails(response);
 
     log.info("End get server fee. Response is {}", response);
 
@@ -154,21 +168,60 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
   @Override
   public InvestmentIWrapperDTO getTotalInvestment(Integer drivers, Integer serverId)
       throws CyverseCalculationException {
-    log.info("Init get total investment for server {} and drivers {}", serverId, drivers);
-
     final InvestmentIWrapperDTO response = new InvestmentIWrapperDTO();
 
-    response.setBackdoorFeeMonthly(this.getBackDoorFee(drivers));
-    response.setServerFeeMonthly(this.getServerFee(serverId));
-    response.setMontlyExpense(response.getBackdoorFeeMonthly().add(response.getServerFeeMonthly()));
+    response.setBackdoorFee(this.getBackDoorFee(drivers));
+    response.setServerFee(this.getServerFee(serverId));
+
+    final TimeAmountWrapperDTO totalExpense = new TimeAmountWrapperDTO();
+    totalExpense.setMonthly(
+        response.getBackdoorFee().getMonthly().add(response.getServerFee().getMonthly()));
+    this.completeTimeDetails(totalExpense);
+
+    response.setExpense(totalExpense);
 
     return response;
   }
 
   @Override
-  public BigDecimal getMonthlyProfits(BigDecimal totalInvestment, BigDecimal totalEarn)
+  public TimeAmountWrapperDTO getProfits(BigDecimal totalInvestment, BigDecimal totalEarn)
       throws CyverseCalculationException {
-    return totalEarn.subtract(totalInvestment);
+    log.info("Init get profits for totalInvestment {} and totalEarn {}", totalInvestment,
+        totalEarn);
+
+    final TimeAmountWrapperDTO response = new TimeAmountWrapperDTO();
+
+    response.setMonthly(totalEarn.subtract(totalInvestment));
+    this.completeTimeDetails(response);
+
+    return response;
+  }
+
+  @Override
+  public BigDecimal getServerAmount(Integer serverId) throws CyverseCalculationException {
+    log.info("Init get server amount for server {}", serverId);
+
+    final ServerEnum serverEnum = ServerEnum.getEnumFromId(serverId);
+
+    if (ServerEnum.INVALID.equals(serverEnum)) {
+      throw new CyverseCalculationException("Invalid server id has been sent");
+    }
+
+    return serverEnum.getValue();
+  }
+  
+  /*********************** PRIVATE METHODS ***********************/
+
+  /**
+   * Complete daily and weekly details
+   * 
+   * @param response
+   */
+  private void completeTimeDetails(TimeAmountWrapperDTO response) {
+    response.setWeekly(response.getMonthly().multiply(new BigDecimal("7"))
+        .divide(new BigDecimal(MONTH_DAYS), 2, RoundingMode.HALF_UP));
+    response.setDaily(response.getMonthly().multiply(new BigDecimal("1"))
+        .divide(new BigDecimal(MONTH_DAYS), 2, RoundingMode.HALF_UP));
   }
 
 }

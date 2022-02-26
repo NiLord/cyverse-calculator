@@ -1,6 +1,6 @@
-package com.nilord.cyverse.calculator.model.service.calculator;
+package com.nilord.cyverse.calculator.model.service.domain;
 
-import java.math.BigDecimal;
+import java.io.Serializable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,16 +9,18 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "Request entity for investment monthly information")
-public class InvestmentIWrapperDTO {
+@Schema(description = "Entity for investment monthly information")
+public class InvestmentIWrapperDTO implements Serializable {
   
+  private static final long serialVersionUID = 5229691231613547980L;
+
   @Schema(description = "Backdoor fee monthly amount", example = "49.75", required = false)
-  private BigDecimal backdoorFeeMonthly;
+  private TimeAmountWrapperDTO backdoorFee;
   
   @Schema(description = "Server fee monthly amount", example = "300.25", required = false)
-  private BigDecimal serverFeeMonthly;
+  private TimeAmountWrapperDTO serverFee;
   
   @Schema(description = "Total amount", example = "350.00", required = false)
-  private BigDecimal montlyExpense;
+  private TimeAmountWrapperDTO expense;
 
 }
