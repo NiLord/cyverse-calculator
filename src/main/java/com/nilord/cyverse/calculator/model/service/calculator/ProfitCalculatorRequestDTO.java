@@ -14,8 +14,8 @@ public class ProfitCalculatorRequestDTO implements Serializable {
   
   private static final long serialVersionUID = -2904182010009527700L;
   
-  @Schema(description = "Drivers amount", example = "16", required = true)
-  private Integer drivers;
+  @Schema(description = "Divers amount", example = "16", required = true)
+  private Integer divers;
   
   @Schema(description = "Pods amount", example = "1400", required = true)
   private Integer hackingPower;
