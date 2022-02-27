@@ -61,11 +61,11 @@ public interface ProfitCalculationUtils {
   /**
    * Calculate backdoor fee in a month
    * 
-   * @param drivers number of drivers
-   * @return total drivers month investment
+   * @param divers number of divers
+   * @return total divers month investment
    * @throws CyverseCalculationException Invalid data is sent
    */
-  public TimeAmountWrapperDTO getBackDoorFee(Integer drivers) throws CyverseCalculationException;
+  public TimeAmountWrapperDTO getBackDoorFee(Integer divers) throws CyverseCalculationException;
 
   /**
    * Calculate server feed in a month
@@ -79,12 +79,12 @@ public interface ProfitCalculationUtils {
   /**
    * Returns total investment in a single month
    * 
-   * @param drivers number of drivers
+   * @param divers number of divers
    * @param serverId server id
    * @return total pods investment wrapper
    * @throws CyverseCalculationException Invalid data is sent
    */
-  public InvestmentIWrapperDTO getTotalInvestment(Integer drivers, Integer serverId)
+  public InvestmentIWrapperDTO getTotalInvestment(Integer divers, Integer serverId)
       throws CyverseCalculationException;
 
   /**

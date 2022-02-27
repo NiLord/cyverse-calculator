@@ -41,7 +41,7 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
     response.setSucessDaysPerMonth(this.getSucessDays(response.getWinRate()));
     response.setSucessMoneyRewardPerMonth(
         this.getMoneyRewardPerMoth(response.getSucessDaysPerMonth(), response.getServerId()));
-    response.setInvestment(this.getTotalInvestment(request.getDrivers(), response.getServerId()));
+    response.setInvestment(this.getTotalInvestment(request.getDivers(), response.getServerId()));
     response.setEstimatedProfits(this.getProfits(response.getInvestment().getExpense().getMonthly(),
         response.getSucessMoneyRewardPerMonth()));
     response.setServerAmount(this.getServerAmount(response.getServerId()));
@@ -132,12 +132,12 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
   }
 
   @Override
-  public TimeAmountWrapperDTO getBackDoorFee(Integer drivers)
+  public TimeAmountWrapperDTO getBackDoorFee(Integer divers)
       throws CyverseCalculationException {
     final TimeAmountWrapperDTO response = new TimeAmountWrapperDTO();
 
     response.setMonthly(
-        BACKDOOR_FEE.multiply(new BigDecimal(drivers)).multiply(new BigDecimal(MONTH_DAYS)));
+        BACKDOOR_FEE.multiply(new BigDecimal(divers)).multiply(new BigDecimal(MONTH_DAYS)));
     this.completeTimeDetails(response);
 
     return response;
@@ -166,11 +166,11 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
   }
 
   @Override
-  public InvestmentIWrapperDTO getTotalInvestment(Integer drivers, Integer serverId)
+  public InvestmentIWrapperDTO getTotalInvestment(Integer divers, Integer serverId)
       throws CyverseCalculationException {
     final InvestmentIWrapperDTO response = new InvestmentIWrapperDTO();
 
-    response.setBackdoorFee(this.getBackDoorFee(drivers));
+    response.setBackdoorFee(this.getBackDoorFee(divers));
     response.setServerFee(this.getServerFee(serverId));
 
     final TimeAmountWrapperDTO totalExpense = new TimeAmountWrapperDTO();
