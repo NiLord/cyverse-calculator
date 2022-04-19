@@ -19,12 +19,6 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
   /** Init> Parameters should live in a data base **/
   private static final Integer MAX_SERVER = 30;
   private static final Integer MIN_HP = 100;
-
-  private static final BigDecimal INITIAL_WIN_RATE = new BigDecimal("0.90");
-  private static final BigDecimal RATE_DROP_ONE = new BigDecimal("0.02");
-  private static final BigDecimal RATE_DROP_TWO = new BigDecimal("0.01");
-  private static final Integer SERVER_RATE_CHANGE = 17;
-
   private static final Integer MONTH_DAYS = 30;
 
   private static final BigDecimal BACKDOOR_FEE = new BigDecimal("1");
@@ -72,25 +66,15 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
 
     log.info("Init win rate calculation for server id {}", serverId);
 
-    if (serverId < 0 || serverId > MAX_SERVER) {
+    final ServerEnum serverEnum = ServerEnum.getEnumFromId(serverId);
+
+    if (ServerEnum.INVALID.equals(serverEnum)) {
       throw new CyverseCalculationException("Invalid server id has been sent");
     }
 
-    BigDecimal calculationServer = new BigDecimal(serverId - 1);
-    BigDecimal serverVariation = RATE_DROP_ONE.multiply(calculationServer);
+    log.info("End win rate calculation. Win rate is {}", serverEnum.getWinRate());
 
-    BigDecimal response = INITIAL_WIN_RATE.subtract(serverVariation);
-
-    // Check for special variation
-    if (serverId >= SERVER_RATE_CHANGE) {
-      calculationServer = new BigDecimal(serverId + 1 - SERVER_RATE_CHANGE);
-      serverVariation = RATE_DROP_TWO.multiply(calculationServer);
-      response = response.add(serverVariation);
-    }
-
-    log.info("End win rate calculation. Win rate is {}", response);
-
-    return response;
+    return serverEnum.getWinRate();
   }
 
   @Override
@@ -98,7 +82,7 @@ public class ProfitCalculationUtilsImpl implements ProfitCalculationUtils {
 
     log.info("Init sucessday calculation for winrate {}", winRate);
 
-    if (winRate.compareTo(BigDecimal.ZERO) <= 0 || winRate.compareTo(INITIAL_WIN_RATE) > 0) {
+    if (winRate.compareTo(BigDecimal.ZERO) <= 0) {
       throw new CyverseCalculationException("Invalid winrate has been sent");
     }
 
